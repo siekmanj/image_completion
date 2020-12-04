@@ -30,9 +30,21 @@ def mask_out_nonzero(X, proportion):
     return mask, anti_mask, omega
 
 if __name__ == '__main__':
+    import os, time
 
     debug = True
-    mndata = MNIST('./mnist')
+
+    if not os.path.isfile('./data/mnist/train-images-idx3-ubyte.gz'):
+        import urllib
+        print("This script will now attempt to download the MNIST dataset.")
+        time.sleep(2)
+
+        os.makedirs('./data/mnist', exist_ok=True)
+
+        for f in ['train-images-idx3-ubyte.gz', 'train-labels-idx1-ubyte.gz', 't10k-images-idx3-ubyte.gz', 't10k-labels-idx1-ubyte.gz']:
+            urllib.request.urlretrieve('http://yann.lecun.com/exdb/mnist/' + f, filename='./data/mnist/' + f)
+
+    mndata = MNIST('./data/mnist')
     mndata.gz = True
     images, labels = mndata.load_training()
 
