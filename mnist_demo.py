@@ -57,6 +57,7 @@ def recovery_scatterplot(batch, ms=[0.01, 0.05]):
           print(MNIST.display(recovered.flatten()))
         print("Original matrix rank: {:2d} | recovery {:6.5f}".format(rank_m, recovery_metric))
 
+    #np.savez('rank_scatter.npz', xs=xs, ys=ys, cs=cs)
     fig, axs = plt.subplots(1,len(ms), figsize=(5*len(ms),4))
     for i, m in enumerate(ms):
         axs[i].set_title('m='+str(1-m))
@@ -69,9 +70,7 @@ if __name__ == '__main__':
     import os, time
     import matplotlib.pyplot as plt
 
-    ms = [0.01, 0.05] # proportion of pixels to remove
-
-    debug =False
+    debug = False
 
     if not os.path.isfile('./data/mnist/train-images-idx3-ubyte.gz'):
       import urllib.request
@@ -91,39 +90,41 @@ if __name__ == '__main__':
 
     batch = list(range(len(images)))
     np.random.shuffle(batch)
-    batch = batch[:200]
 
-    if False:
-      recovery_scatterplot([images[i] for i in batch], ms=[0.01, 0.05])
+    if True:
+      recovery_scatterplot([images[i] for i in batch], ms=np.linspace(0, 0.5, num=10))
 
     # recreate Figure 1 from paper, but with mnist instead of random matrices
-    resolution = 5
-    batch = batch[:50]
-    xs = []
-    ys = []
-    cs = []
-    for img in [images[i] for i in batch]:
-      M = np.reshape(img, (28,28))
-      r = np.linalg.matrix_rank(M)
-      n = M.shape[0]
-      min_m = r * (2*n - r)
-      for m in np.linspace(min_m, n**2, num=resolution):
-        corrupted, omega = corrupt_image(M, 1-(m/n**2))
-        d_r = r * (2*n - r)
-        xs += [m / n**2]
-        ys += [d_r / m]
-        print('m/n^2 = {:4.3f} / {:4.3f}'.format(m, n**2))
-        print('d_r/m = {:4.3f} / {:4.3f}'.format(d_r, m))
+    if False:
+      resolution = 15
+      batch = batch[:1000]
+      xs = []
+      ys = []
+      cs = []
+      for img in [images[i] for i in batch]:
+        M = np.reshape(img, (28,28))
+        r = np.linalg.matrix_rank(M)
+        n = M.shape[0]
+        min_m = r * (2*n - r)
+        for m in np.linspace(min_m, n**2, num=resolution):
+          corrupted, omega = corrupt_image(M, 1-(m/n**2))
+          d_r = r * (2*n - r)
+          xs += [m / n**2]
+          ys += [d_r / m]
+          print('m/n^2 = {:4.3f} / {:4.3f}'.format(m, n**2))
+          print('d_r/m = {:4.3f} / {:4.3f}'.format(d_r, m))
 
-        recovered       = np.round(complete_matrix(corrupted, omega))
-        recovery_metric = np.linalg.norm(M - recovered, 'fro') / np.linalg.norm(M, 'fro')
-        print('\t', recovery_metric)
-        cs += [(recovery_metric, 0.5, 0.5)]
-    fig, axs = plt.subplots(1,1, figsize=(5,4))
-    axs.set_title('Recovery of matrices from entries')
-    axs.scatter(xs, ys, c=cs, s=10)
-    axs.set_ylim(0,1)
-    axs.set_xlabel('m/n^2')
-    axs.set_ylabel('d_r/m')
-    plt.show()
+          recovered       = np.round(complete_matrix(corrupted, omega))
+          recovery_metric = np.linalg.norm(M - recovered, 'fro') / np.linalg.norm(M, 'fro')
+          print('\t', recovery_metric)
+          cs += [(recovery_metric, recovery_metric, 0.5)]
+      np.savez('mnist_data.npz', xs=xs, ys=ys, cs=cs)
+      fig, axs = plt.subplots(1,1, figsize=(5,4))
+      axs.set_title('Recovery of matrices from entries')
+      axs.scatter(xs, ys, c=cs, s=10)
+      axs.set_ylim(0,1)
+      axs.set_xlabel('m/n^2')
+      axs.set_ylabel('d_r/m')
+      plt.savefig('fig_mnist.png')
+      plt.show()
         
