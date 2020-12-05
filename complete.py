@@ -17,13 +17,18 @@ def complete_matrix(M, omega):
     # Constraint explanation
     constraints = [X == X.T] # symmetry constraint
     for i, j in omega:
+        #print("X[{:2d}, {:2d}] must stay {:6.4f}".format(i, j, M[i,j]))
         constraints += [X[i, j + M.shape[0]] == M[i, j]]
 
     # Minimize surrogate of nuclear norm, trace
     problem = cp.Problem(cp.Minimize(cp.trace(X)), constraints)
     problem.solve()
 
-    # return bottom left corner of matrix
+    #for i, j in omega:
+    #  if not np.abs(X.value[i, j + M.shape[0]] - M[i,j]) < 0.001:
+    #    print("X[{:2d}, {:2d}] ({:6.4f} vs M[{:2d}, {:2d}] ({:6.4f})".format(i, j + M.shape[0], X.value[i, j + M.shape[0]], i, j, M[i,j]))
+
+    # return top right corner of matrix
     return X.value[:M.shape[0], M.shape[0]:]
 
 def mask_out_matrix(X, entries):
