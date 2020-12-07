@@ -12,6 +12,9 @@ def complete_matrix(M, omega):
     # The reason for introducing W1, W2, and X* is because for 
     # convex optimization reasons, we want to minimize the trace of
     # a symmetric PSD matrix.
+    # 
+    # This implementation loosely inspired by Joonyoung Yi: https://github.com/JoonyoungYi/MCCO-numpy
+
     X = cp.Variable([np.sum(M.shape), np.sum(M.shape)], PSD=True) # create the 2n X 2n matrix
 
     # Constraint explanation
@@ -24,10 +27,6 @@ def complete_matrix(M, omega):
     problem = cp.Problem(cp.Minimize(cp.trace(X)), constraints)
     problem.solve()
 
-    #for i, j in omega:
-    #  if not np.abs(X.value[i, j + M.shape[0]] - M[i,j]) < 0.001:
-    #    print("X[{:2d}, {:2d}] ({:6.4f} vs M[{:2d}, {:2d}] ({:6.4f})".format(i, j + M.shape[0], X.value[i, j + M.shape[0]], i, j, M[i,j]))
-
     # return top right corner of matrix
     return X.value[:M.shape[0], M.shape[0]:]
 
@@ -38,7 +37,6 @@ def mask_out_matrix(X, entries):
         mask[i, j] = 1
     return X.copy() * mask, omega
 
-
 if __name__ == '__main__':
     n    = 30
     rank = 8
@@ -46,7 +44,7 @@ if __name__ == '__main__':
     print(m)
     M    = np.dot(np.random.randn(n, rank), np.random.randn(n, rank).T)
     print(np.linalg.matrix_rank(M))
-    X, omega = mask_out_matrix(M, m)
+    X, omega = mask_out_matrix(M, m) # strictly speaking, not necessary
         
     #max_val = np.max(np.absolute(M))
 
@@ -60,5 +58,4 @@ if __name__ == '__main__':
 
     print('Average entry-wise difference after recovery:', np.mean(np.abs(M - recovered)))
     print("Nuclear Norm of recoverd matrix: {:6.4f}".format(np.linalg.norm(recovered, "nuc")))
-    
 
