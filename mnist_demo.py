@@ -25,52 +25,14 @@ def corrupt_image(M, proportion):
 
     return X, omega
 
-def recovery_scatterplot(batch, ms=[0.01, 0.05]):
-    data = {'idx': [], 'rank': []}
-
-    for m in ms:
-      data[str(m)] = []
-
-    for i, img in enumerate(batch): 
-      M            = np.reshape(img, (28,28))
-      rank_m       = np.linalg.matrix_rank(M)
-      data['idx']  += [i]
-      data['rank'] += [rank_m]
-
-      for m in ms:
-        corrupted, omega = corrupt_image(M, m) # corrupt image by altering 100*m percent of pixels
-        if debug:
-          print('m:', m)
-          print(MNIST.display((M).flatten()))
-
-        recovered       = np.round(complete_matrix(corrupted, omega))
-
-        frobenius_diff  = np.linalg.norm(M, 'nuc') - np.linalg.norm(recovered, 'nuc')
-        err_frobenius   = np.linalg.norm(M - recovered, 'fro')
-        recovery_metric = err_frobenius / np.linalg.norm(M, 'fro')
-
-        data[str(m)] += [recovery_metric]
-
-        if debug:
-          pass
-          print("recovered:")
-          print(MNIST.display(recovered.flatten()))
-        print("Original matrix rank: {:2d} | recovery {:6.5f}".format(rank_m, recovery_metric))
-
-    #np.savez('rank_scatter.npz', xs=xs, ys=ys, cs=cs)
-    fig, axs = plt.subplots(1,len(ms), figsize=(5*len(ms),4))
-    for i, m in enumerate(ms):
-        axs[i].set_title('m='+str(1-m))
-        axs[i].plot(np.mean(data['rank'], axis=0), np.mean(data[str(m)], axis=0), s=2)
-        
-    plt.savefig('backup.png')
-    plt.show()
-
 if __name__ == '__main__':
     import os, sys, datetime, time
     import matplotlib.pyplot as plt
 
     debug = False
+    generate_fig1 = True
+    generate_fig2 = False
+    generate_fig3 = False
 
     if not os.path.isfile('./data/mnist/train-images-idx3-ubyte.gz'):
       import urllib.request
@@ -91,7 +53,7 @@ if __name__ == '__main__':
     batch = list(range(len(images)))
     np.random.shuffle(batch)
 
-    if False:
+    if generate_fig1:
       Ms = [np.reshape(images[i], (28,28)) for i in batch]
       fig = plt.figure(figsize=(8,1))
       axs = []
@@ -105,10 +67,10 @@ if __name__ == '__main__':
           axs[-1].set_yticks([])
           plt.imshow(Ms[i], cmap='gray')
 
-      plt.savefig('examples.png', transparent=True)
+      plt.savefig('examples_mnist.png', transparent=True)
       plt.show()
 
-    if False:
+    if generate_fig2:
       Ms = [np.reshape(images[i], (28,28)) for i in batch]
       fig = plt.figure(figsize=(8,6))
       axs = []
@@ -146,11 +108,7 @@ if __name__ == '__main__':
       plt.savefig('comparison.png', transparent=True)
       plt.show()
 
-    if False:
-      batch = batch[:100]
-      recovery_scatterplot([images[i] for i in batch], ms=np.linspace(0, 0.5, num=10))
-
-    if True:
+    if generate_fig3:
       if len(sys.argv) == 2:
         dataname = sys.argv[1]
       else:
