@@ -182,6 +182,7 @@ if __name__ == '__main__':
                 cs   += [data[r][j]]
 
         np.savez(dataname, xs=xs, rank=rank, cs=cs, dof=dof)
+        exit()
       else:
         print("loading dataset from '{}'".format(dataname))
         f = np.load(dataname)
@@ -195,7 +196,7 @@ if __name__ == '__main__':
         xs = f['xs']
         cs = np.clip(f['cs'], 0.1, 1)
 
-      if True:
+      if False:
 
         print(np.max(cs))
         cs = np.clip(cs, 0, 1)
