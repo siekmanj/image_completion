@@ -30,9 +30,9 @@ if __name__ == '__main__':
     import matplotlib.pyplot as plt
 
     debug = False
-    generate_fig1 = True
+    generate_fig1 = False
     generate_fig2 = False
-    generate_fig3 = False
+    generate_fig3 = True
 
     if not os.path.isfile('./data/mnist/train-images-idx3-ubyte.gz'):
       import urllib.request
@@ -75,12 +75,13 @@ if __name__ == '__main__':
       fig = plt.figure(figsize=(8,6))
       axs = []
 
-      rows = 3
 
-      cols=3
+      ms = [0.05, 0.15, 0.5]
+      cols = 3
+      rows = len(ms)
       for i in range(rows):
-          m = [0.25, 0.5, 0.75][i]
-          corrupted, omega = corrupt_image(Ms[i], m)
+          img = Ms[65]
+          corrupted, omega = corrupt_image(img, ms[i])
           recovered        = np.round(complete_matrix(corrupted, omega))
 
           axs.append(fig.add_subplot(rows, cols, (i*cols)+1))
@@ -88,7 +89,7 @@ if __name__ == '__main__':
               axs[-1].set_title('Corrupted Image')
           axs[-1].set_xticks([])
           axs[-1].set_yticks([])
-          axs[-1].set_ylabel('{:2d}% corrupted'.format(int(100*m)), rotation=0, labelpad=40)
+          axs[-1].set_ylabel('{:2d}% corrupted'.format(int(100*ms[i])), rotation=0, labelpad=40)
           plt.imshow(corrupted, cmap='gray')
 
           axs.append(fig.add_subplot(rows, cols, (i*cols)+2))
@@ -103,9 +104,9 @@ if __name__ == '__main__':
               axs[-1].set_title('Original Image')
           axs[-1].set_xticks([])
           axs[-1].set_yticks([])
-          plt.imshow(Ms[i], cmap='gray')
+          plt.imshow(img, cmap='gray')
 
-      plt.savefig('comparison.png', transparent=True)
+      plt.savefig('comparison_mnist.png', transparent=True)
       plt.show()
 
     if generate_fig3:
@@ -177,24 +178,29 @@ if __name__ == '__main__':
         xs = f['xs']
         cs = f['cs']
 
-      if True: # do DOF, not rank
+      if False: # do DOF, not rank
 
         fig, axs = plt.subplots(1,1, figsize=(6,4))
-        #axs[0].set_title('Recovery of MNIST Images')
-        #axs[0].scatter(xs, dof, c=cs, s=20)
-        #axs[0].set_xlabel('Proportion of Corrupted Entries')
-        #axs[0].set_ylabel('Image Matrix DOF')
         axs.set_title('Recovery of MNIST Images')
-        axs.scatter(xs, rank, c=cs, s=20)
-        axs.set_xlabel('Proportion of Corrupted Entries')
-        axs.set_ylabel('Image Matrix Rank')
-        
-        print("\\begin{table}[]")
-        #print("\\begin{tabular}{l|".join(['l' for _ in np.unique(xs)] + '}'))
-        #for 
 
-        print("\\end{tabular}")
-        print("\\end{table}")
+        if True:
+            dim = 0
+            while rank[0] == rank[dim]:
+                dim += 1
+
+            for i in range(len(xs) // dim):
+                r = rank[i*dim]
+                y = 1 - cs[i*dim:(i+1)*dim][:,1]
+                x = xs[i*dim:(i+1)*dim]
+                print(y.shape, x.shape)
+                if r in [5, 10, 15, 20, 25]:
+                    axs.plot(x, y, label='rank:'+str(r))
+            axs.set_xlabel('Proportion of Corrupted Entries')
+            axs.set_ylabel('Recovery Score')
+        else:
+            axs.scatter(xs, rank, c=cs, s=20)
+            axs.set_xlabel('Proportion of Corrupted Entries')
+            axs.set_ylabel('Image Matrix Rank')
+        plt.legend()
         plt.savefig('fig_mnist.png')
         plt.show()
-
