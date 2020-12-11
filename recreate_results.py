@@ -8,12 +8,12 @@ if __name__ == '__main__':
     import matplotlib.pyplot as plt
     import os, sys, time, datetime
 
-    pix_res = 40,40
-    trials = 25
+    pix_res = 32,32
+    trials = 20
 
     img = np.zeros(pix_res)
     start = time.time()
-    for n in [32]:
+    for n in [28]:
         for x, dr_over_m in enumerate(np.linspace(0, 1, num=pix_res[0])):
             for y, m_over_nsq in enumerate(np.linspace(0, 1, num=pix_res[1])):
                 for trial in range(trials):
@@ -27,7 +27,10 @@ if __name__ == '__main__':
 
                     X = complete_psd_symmetric(M.copy(), omega)
 
-                    metric = np.clip(np.linalg.norm(X - M, 'nuc') / np.linalg.norm(M, 'nuc'), 0, 1)
+                    if X is not None:
+                        metric = np.clip(np.linalg.norm(X - M, 'nuc') / np.linalg.norm(M, 'nuc'), 0, 1)
+                    else:
+                        metric = 1
 
                     if metric < 1e-3:
                         img[x,y] += 1

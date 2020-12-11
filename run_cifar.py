@@ -82,7 +82,6 @@ if __name__ == '__main__':
           for M, R in [(r, r_hat), (g, g_hat), (b, b_hat)]:
               recovery_metric += (np.linalg.norm(M - R, 'fro') / np.linalg.norm(M, 'fro')) / 3
 
-          #recovery_metric = np.clip(recovery_metric, 0, 1)
           data[rank][-1] += [recovery_metric]
 
           completion = (idx * len(ms) + j) / (res * len(batch))
@@ -109,7 +108,7 @@ if __name__ == '__main__':
       f = np.load(dataname)
       rank = f['rank']
       xs = f['xs']
-      cs = np.clip(f['cs'], 0.1, 1)
+      cs = np.clip(f['cs'], 0.01, 1)
 
     if True:
 

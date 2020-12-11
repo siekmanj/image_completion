@@ -2,6 +2,19 @@ import numpy as np
 import cvxpy as cp
 import random
 
+def complete_psd_symmetric(M, omega):
+    X = cp.Variable(M.shape, PSD=True) # create the 2n X 2n matrix
+
+    constraints = [X == X.T] # symmetry constraint
+    for i, j in omega:
+        constraints += [X[i, j] == M[i, j]]
+
+    # Minimize surrogate of nuclear norm, trace
+    problem = cp.Problem(cp.Minimize(cp.trace(X)), constraints)
+    problem.solve()
+
+    return X.value
+
 def complete_matrix(M, omega):
     # create a decision variable which has shape 2n X 2n
     # essentially,
