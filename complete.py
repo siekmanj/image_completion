@@ -1,3 +1,7 @@
+# This is the meat of my project.
+# complete_matrix() should work with any matrix, symmetric or not.
+# complete_psd_symmetric() will work with psd symmetric matrices only, but is faster.
+
 import numpy as np
 import cvxpy as cp
 import random
