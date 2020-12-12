@@ -28,14 +28,14 @@ def corrupt_image(M, proportion):
 
 def get_mnist():
     if not os.path.isfile('./data/mnist/train-images-idx3-ubyte.gz'):
-      import urllib.request
-      print("This script will now attempt to download the MNIST dataset.")
-      time.sleep(2)
+        import urllib.request
+        print("This script will now attempt to download the MNIST dataset.")
+        time.sleep(2)
 
-      os.makedirs('./data/mnist', exist_ok=True)
+        os.makedirs('./data/mnist', exist_ok=True)
 
-      for f in ['train-images-idx3-ubyte.gz', 'train-labels-idx1-ubyte.gz', 't10k-images-idx3-ubyte.gz', 't10k-labels-idx1-ubyte.gz']:
-        urllib.request.urlretrieve('http://yann.lecun.com/exdb/mnist/' + f, filename='./data/mnist/' + f)
+        for f in ['train-images-idx3-ubyte.gz', 'train-labels-idx1-ubyte.gz', 't10k-images-idx3-ubyte.gz', 't10k-labels-idx1-ubyte.gz']:
+            urllib.request.urlretrieve('http://yann.lecun.com/exdb/mnist/' + f, filename='./data/mnist/' + f)
 
     mndata = MNIST('./data/mnist')
     mndata.gz = True
@@ -53,42 +53,46 @@ if __name__ == '__main__':
     np.random.shuffle(batch)
 
     if len(sys.argv) == 2:
-      dataname = sys.argv[1]
+        dataname = sys.argv[1]
     else:
-      dataname = 'recovery_data.npz'
+        dataname = 'recovery_data.npz'
 
     if not os.path.isfile(dataname):
-      print("creating dataset at '{}'".format(dataname))
-      batch = batch[:10]
-      res = 5
-      recovery_thresh = 0.01
-      ms = np.linspace(0, 1, num=res)
+        print("creating dataset at '{}'".format(dataname))
+        if False: # full scale test, takes quite a long time
+            batch = batch[:1000]
+            res = 25
+        else: # quick demo, takes 1-2 minutes
+            batch = batch[:10]
+            res = 5
+        recovery_thresh = 0.01
+        ms = np.linspace(0, 1, num=res)
 
-      sampled    = {}
-      recoveries = {}
-      Ms = [np.reshape(images[i], (28,28)) for i in batch]
-      rs = np.linalg.matrix_rank(Ms)
-      start = time.time()
+        sampled    = {}
+        recoveries = {}
+        Ms = [np.reshape(images[i], (28,28)) for i in batch]
+        rs = np.linalg.matrix_rank(Ms)
+        start = time.time()
 
-      data = {}
-      for r in np.unique(rs):
-          print("unique rank:", r)
-          data[int(r)] = []
+        data = {}
+        for r in np.unique(rs):
+            print("unique rank:", r)
+            data[int(r)] = []
 
-      for i, (M, r) in enumerate(zip(Ms, rs)):
+        for i, (M, r) in enumerate(zip(Ms, rs)):
 
-        data[int(r)] += [[]]
-        for j, m in enumerate(ms):
-          corrupted, omega = corrupt_image(M, m)
-          recovered        = np.round(complete_matrix(corrupted, omega))
-          recovery_metric  = np.clip(np.linalg.norm(M - recovered, 'fro') / np.linalg.norm(M, 'fro'), 0.01, 0.99)
+          data[int(r)] += [[]]
+          for j, m in enumerate(ms):
+              corrupted, omega = corrupt_image(M, m)
+              recovered        = np.round(complete_matrix(corrupted, omega))
+              recovery_metric  = np.clip(np.linalg.norm(M - recovered, 'fro') / np.linalg.norm(M, 'fro'), 0.01, 0.99)
 
-          data[int(r)][-1] += [recovery_metric]
+              data[int(r)][-1] += [recovery_metric]
 
-          completion = (i * len(ms) + j) / (res * len(batch))
-          rate = (time.time() - start) / (completion + 1e-3)
-          remaining = (1 - completion) * rate
-          print('\t{:3d}/{:3d}: {:5.3f}, {} remaining'.format(i * len(ms) + j, res * len(batch), recovery_metric, str(datetime.timedelta(seconds=remaining)).split('.')[0]))
+              completion = (i * len(ms) + j) / (res * len(batch))
+              rate = (time.time() - start) / (completion + 1e-3)
+              remaining = (1 - completion) * rate
+              print('\t{:3d}/{:3d}: {:5.3f}, {} remaining'.format(i * len(ms) + j, res * len(batch), recovery_metric, str(datetime.timedelta(seconds=remaining)).split('.')[0]))
 
       print("{} elapsed.".format(str(datetime.timedelta(seconds=time.time() - start)).split('.')[0]))
       xs = []
@@ -100,14 +104,13 @@ if __name__ == '__main__':
               xs   += [ms[j]]
               rank += [r]
               cs   += [data[r][j]]
-
       np.savez(dataname, xs=xs, rank=rank, cs=cs)
-    else:
-      print("loading dataset from '{}'".format(dataname))
-      f = np.load(dataname)
-      rank = f['rank']
-      xs   = f['xs']
-      cs   = 1 - f['cs']
+
+    print("loading dataset from '{}'".format(dataname))
+    f = np.load(dataname)
+    rank = f['rank']
+    xs   = f['xs']
+    cs   = f['cs']
 
     fig, axs = plt.subplots(1,1, figsize=(6,4))
     axs.set_title('Recovery of MNIST Images')

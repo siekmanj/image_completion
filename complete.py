@@ -3,40 +3,46 @@ import cvxpy as cp
 import random
 
 def complete_psd_symmetric(M, omega):
-    X = cp.Variable(M.shape, PSD=True) # create the 2n X 2n matrix
+    """
+    If M is already symmetric PSD, can safely use this
+    to recover the matrix.
+    """
+    X = cp.Variable(M.shape, PSD=True)
 
     constraints = [X == X.T] # symmetry constraint
     for i, j in omega:
-        constraints += [X[i, j] == M[i, j]]
+        constraints += [X[i, j] == M[i, j]] # equality constraint for sampled entries
 
-    # Minimize surrogate of nuclear norm, trace
+    # Minimize surrogate of nuclear norm: trace
     problem = cp.Problem(cp.Minimize(cp.trace(X)), constraints)
     problem.solve()
 
     return X.value
 
 def complete_matrix(M, omega):
-    # create a decision variable which has shape 2n X 2n
-    # essentially,
-    # | W1 X  |
-    # | X* W2 |
-    # we want to minimize Tr(W1) + Tr(W2), but only really care
-    # about X as this will be our original reconstructed matrix.
-    # The reason for introducing W1, W2, and X* is because for 
-    # convex optimization reasons, we want to minimize the trace of
-    # a symmetric PSD matrix.
-    # 
-    # This implementation loosely inspired by Joonyoung Yi: https://github.com/JoonyoungYi/MCCO-numpy
+    """
+    If M is not guaranteed to by symmetric PSD, use this function instead.
+    """
 
+    """
+    create a decision variable which has shape 2n X 2n
+    essentially,
+    | W1 X  |
+    | X* W2 |
+    we want to minimize Tr(W1) + Tr(W2), but only really care
+    about X as this will be our original reconstructed matrix.
+    The reason for introducing W1, W2, and X* is because 
+    we want to minimize the trace of a symmetric PSD matrix.
+    
+    This implementation loosely inspired by Joonyoung Yi: https://github.com/JoonyoungYi/MCCO-numpy
+    """
     X = cp.Variable([np.sum(M.shape), np.sum(M.shape)], PSD=True) # create the 2n X 2n matrix
 
-    # Constraint explanation
     constraints = [X == X.T] # symmetry constraint
     for i, j in omega:
-        #print("X[{:2d}, {:2d}] must stay {:6.4f}".format(i, j, M[i,j]))
-        constraints += [X[i, j + M.shape[0]] == M[i, j]]
+        constraints += [X[i, j + M.shape[0]] == M[i, j]] # equality constraint for sampled entries
 
-    # Minimize surrogate of nuclear norm, trace
+    # Minimize surrogate of nuclear norm: trace(X)
     problem = cp.Problem(cp.Minimize(cp.trace(X)), constraints)
     problem.solve()
 
@@ -51,20 +57,13 @@ def mask_out_matrix(X, entries):
     return X.copy() * mask, omega
 
 if __name__ == '__main__':
-    n    = 30
-    rank = 8
-    m    = int(0.4 * n**(1.25) * rank * np.log(n))
-    print(m)
-    M    = np.dot(np.random.randn(n, rank), np.random.randn(n, rank).T)
-    print(np.linalg.matrix_rank(M))
+    n        = 30
+    rank     = 8
+    m        = int(0.4 * n**(1.25) * rank * np.log(n))
+    M        = np.dot(np.random.randn(n, rank), np.random.randn(n, rank).T)
     X, omega = mask_out_matrix(M, m) # strictly speaking, not necessary
         
-    #max_val = np.max(np.absolute(M))
-
     print("Nuclear Norm of original matrix M: {:6.4f}".format(np.linalg.norm(M, "nuc")))
-
-    #X = M.copy() * mask
-
     print('Average entry-wise difference before recovery:', np.mean(np.abs(M - X)))
 
     recovered = complete_matrix(X, omega)
