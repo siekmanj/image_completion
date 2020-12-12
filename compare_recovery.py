@@ -2,8 +2,8 @@
 
 import numpy as np
 import random
-from run_mnist import corrupt_image
-from run_cifar import corrupt_channels
+from run_mnist import corrupt_image, get_mnist
+from run_cifar import corrupt_channels, get_cifar
 
 from complete import complete_matrix
 
@@ -14,13 +14,10 @@ if __name__ == '__main__':
     import matplotlib.pyplot as plt
     import os, sys, time, datetime
 
-    mndata = MNIST('./data/mnist')
-    mndata.gz = True
-    mnist_images, labels = mndata.load_training()
+    mnist_data = get_mnist()
 
-    cifar_images, _, _, _ = cifar10(path='data/cifar')
+    cifar_images = get_cifar()
 
-    mnist_data   = [np.reshape(i, (28,28))            for i in mnist_images]
     cifar_r_data = [np.reshape(i[:1024],     (32,32)) for i in cifar_images]
     cifar_g_data = [np.reshape(i[1024:2048], (32,32)) for i in cifar_images]
     cifar_b_data = [np.reshape(i[2048:3072], (32,32)) for i in cifar_images]
@@ -32,7 +29,9 @@ if __name__ == '__main__':
     ms = [0.05, 0.15, 0.5]
     rows = len(ms)
     for i in range(rows):
+        print("Doing row {} of {}".format(i+1,rows))
         m = ms[i]
+        print(mnist_data.shape)
         img = mnist_data[65]
         corrupted, omega = corrupt_image(img, m)
         recovered        = np.round(complete_matrix(corrupted, omega))

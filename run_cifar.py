@@ -2,6 +2,7 @@
 
 import numpy as np
 import random
+import os
 
 from cifar10_web import cifar10
 from complete import complete_matrix
@@ -31,8 +32,21 @@ def corrupt_channels(R, G, B, proportion):
 
     return R_X, G_X, B_X, omega
 
-def get_cifar():
-    images, _, _, _ = cifar10(path='data/cifar')
+def get_cifar(download=False):
+    if not os.path.isfile('./data/cifar/cifar-10-binary.tar.gz'):
+        if download:
+            print("\n\n")
+            print("This script will now attempt to download the cifar10 dataset.")
+            print("Depending on your internet speed, this may take several minutes.")
+            images, _, _, _ = cifar10(path='data/cifar')
+        else:
+            print("\n\n")
+            print("This script is going to load a small, pre-cached version of the cifar10 dataset.")
+            print("To disable this and download the full dataset, call get_cifar(download=True)")
+            images = np.load('data/cifar/small_cifar.npy')
+    else:
+        images, _, _, _ = cifar10(path='data/cifar')
+
     return images
 
 if __name__ == '__main__':

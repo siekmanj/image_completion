@@ -2,7 +2,7 @@
 import numpy as np
 import random
 
-import os
+import os, time
 from complete import complete_matrix, mask_out_matrix
 from mnist import MNIST
 
@@ -27,21 +27,31 @@ def corrupt_image(M, proportion):
 
     return X, omega
 
-def get_mnist():
+def get_mnist(download=False):
     if not os.path.isfile('./data/mnist/train-images-idx3-ubyte.gz'):
-        import urllib.request
-        print("This script will now attempt to download the MNIST dataset.")
-        time.sleep(2)
+        if download:
+            import urllib.request
+            print("This script will now attempt to download the MNIST dataset.")
+            time.sleep(2)
 
-        os.makedirs('./data/mnist', exist_ok=True)
+            os.makedirs('./data/mnist', exist_ok=True)
 
-        for f in ['train-images-idx3-ubyte.gz', 'train-labels-idx1-ubyte.gz', 't10k-images-idx3-ubyte.gz', 't10k-labels-idx1-ubyte.gz']:
-            urllib.request.urlretrieve('http://yann.lecun.com/exdb/mnist/' + f, filename='./data/mnist/' + f)
-
-    mndata = MNIST('./data/mnist')
-    mndata.gz = True
-    images, labels = mndata.load_training()
-    return [np.reshape(i, (28,28)) for i in images]
+            for f in ['train-images-idx3-ubyte.gz', 'train-labels-idx1-ubyte.gz', 't10k-images-idx3-ubyte.gz', 't10k-labels-idx1-ubyte.gz']:
+                urllib.request.urlretrieve('http://yann.lecun.com/exdb/mnist/' + f, filename='./data/mnist/' + f)
+            mndata = MNIST('./data/mnist')
+            mndata.gz = True
+            images, labels = mndata.load_training()
+            return [np.reshape(i, (28,28)) for i in images]
+        else:
+            print("This script will now load a small subset of the MNIST dataset.")
+            print("If this is not what you intended, call get_mnist(download=True) instead.")
+            images = np.load('data/mnist/small_mnist.npy')
+            return images
+    else:
+        mndata = MNIST('./data/mnist')
+        mndata.gz = True
+        images, labels = mndata.load_training()
+        return [np.reshape(i, (28,28)) for i in images]
 
 if __name__ == '__main__':
     import matplotlib.pyplot as plt
