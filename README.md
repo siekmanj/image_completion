@@ -2,6 +2,29 @@
 This is my final project submission for CS 539, Convex Optimization.
 ![Header Image](figs/fig_cmp.png?raw=true "Image Recovery")
 
+# Setup
+I ran these scripts on Ubuntu 18.04. You will need these packages,
+```bash
+pip3 install cvxpy python-mnist cifar10_web --user
+```
+
+If you get an error that includes something like this,
+```bash
+FATAL: Cannot solve SDPs with > 2x2 matrices without linked blas+lapack libraries
+Install blas+lapack and re-compile SCS with blas+lapack library locations
+ERROR: init_cone failure
+Failure:could not initialize work
+```
+
+Then this might fix your issue:
+```bash
+sudo apt install -y libatlas-base-dev
+pip3 install --no-cache-dir --ignore-installed scs --user
+```
+
+
+# Usage
+
 To display some example images from both datasets,
 ```python
 python3 show_examples.py
