@@ -1,5 +1,6 @@
 # image_completion
 This is my final project submission for CS 539, Convex Optimization.
+![Header Image](figs/fig_cmp.png?raw=true "Image Recovery")
 
 To display some example images from both datasets,
 ```python
