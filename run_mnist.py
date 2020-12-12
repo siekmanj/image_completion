@@ -1,3 +1,4 @@
+# Generates the MNIST portion of Fig. 4
 import numpy as np
 import random
 
@@ -55,7 +56,7 @@ if __name__ == '__main__':
     if len(sys.argv) == 2:
         dataname = sys.argv[1]
     else:
-        dataname = 'recovery_data.npz'
+        dataname = 'mnist_recovery.npz'
 
     if not os.path.isfile(dataname):
         print("creating dataset at '{}'".format(dataname))
@@ -70,6 +71,8 @@ if __name__ == '__main__':
 
         sampled    = {}
         recoveries = {}
+        
+        # Reshape the flat vectors into a 28x28 matrix
         Ms = [np.reshape(images[i], (28,28)) for i in batch]
         rs = np.linalg.matrix_rank(Ms)
         start = time.time()
@@ -83,7 +86,10 @@ if __name__ == '__main__':
 
           data[int(r)] += [[]]
           for j, m in enumerate(ms):
+              # remove pixels from the image
               corrupted, omega = corrupt_image(M, m)
+
+              # recover the matrix and round to the nearest integer value
               recovered        = np.round(complete_matrix(corrupted, omega))
               recovery_metric  = np.clip(np.linalg.norm(M - recovered, 'fro') / np.linalg.norm(M, 'fro'), 0.01, 0.99)
 
@@ -94,17 +100,17 @@ if __name__ == '__main__':
               remaining = (1 - completion) * rate
               print('\t{:3d}/{:3d}: {:5.3f}, {} remaining'.format(i * len(ms) + j, res * len(batch), recovery_metric, str(datetime.timedelta(seconds=remaining)).split('.')[0]))
 
-      print("{} elapsed.".format(str(datetime.timedelta(seconds=time.time() - start)).split('.')[0]))
-      xs = []
-      cs = []
-      rank = []
-      for r in data.keys():
-          data[r] = np.mean(data[r], axis=0)
-          for j in range(len(ms)):
-              xs   += [ms[j]]
-              rank += [r]
-              cs   += [data[r][j]]
-      np.savez(dataname, xs=xs, rank=rank, cs=cs)
+        print("{} elapsed.".format(str(datetime.timedelta(seconds=time.time() - start)).split('.')[0]))
+        xs = []
+        cs = []
+        rank = []
+        for r in data.keys():
+            data[r] = np.mean(data[r], axis=0)
+            for j in range(len(ms)):
+                xs   += [ms[j]]
+                rank += [r]
+                cs   += [data[r][j]]
+        np.savez(dataname, xs=xs, rank=rank, cs=cs)
 
     print("loading dataset from '{}'".format(dataname))
     f = np.load(dataname)
@@ -125,5 +131,5 @@ if __name__ == '__main__':
     axs.set_xlabel('Proportion of Corrupted Entries')
     axs.set_ylabel('Image Matrix Rank')
     plt.legend()
-    plt.savefig('fig_mnist.png')
+    plt.savefig('figs/fig_mnist.png')
     plt.show()

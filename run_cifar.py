@@ -1,4 +1,5 @@
-# Creates Fig. 4
+# Generates the CIFAR-10 portion of Fig. 4
+
 import numpy as np
 import random
 
@@ -45,7 +46,7 @@ if __name__ == '__main__':
     if len(sys.argv) == 2:
         dataname = sys.argv[1]
     else:
-        dataname = 'recovery_data.npz'
+        dataname = 'cifar_recovery.npz'
 
     if not os.path.isfile(dataname):
         print("creating dataset at '{}'".format(dataname))
@@ -54,7 +55,7 @@ if __name__ == '__main__':
             res = 25
         else: # takes a few minutes
             batch = batch[:10]
-            res = 5
+            res = 4
         recovery_thresh = 0.01
         ms = np.linspace(0, 1, num=res)
 
@@ -65,20 +66,26 @@ if __name__ == '__main__':
         data = {}
         for idx, i in enumerate(batch): 
             img = images[i]
+            # extract the r, g, b channels from the dataset
             r = [img[j] for j in range(1024)]
             g = [img[j] for j in range(1024, 2048)]
             b = [img[j] for j in range(2048, 3072)]
+
+            # reshape from flat vector into 32x32
             r = np.reshape(r, (32,32))
             g = np.reshape(g, (32,32))
             b = np.reshape(b, (32,32))
 
+            # calculate mean rank of three color channels
             rank = np.mean([np.linalg.matrix_rank(ch) for ch in (r, g, b)])
 
             if rank not in data:
                 data[rank] = [[]]
             else:
                 data[rank] += [[]]
+
             for j, m in enumerate(ms):
+                # perform matrix completion on the corrupted channels, one at a time.
                 r_bad, g_bad, b_bad, omega = corrupt_channels(r,g,b,m)
                 r_hat = complete_matrix(r_bad, omega)
                 g_hat = complete_matrix(g_bad, omega)
@@ -128,5 +135,5 @@ if __name__ == '__main__':
     axs.set_xlabel('Proportion of Corrupted Entries')
     axs.set_ylabel('Averaged RGB Channel Rank')
 
-    plt.savefig('fig_cifar.png')
+    plt.savefig('figs/fig_cifar.png')
     plt.show()

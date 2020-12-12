@@ -1,7 +1,9 @@
+# Generates Fig. 5, comparing the recovery of images from MNIST vs. CIFAR-10.
+
 import numpy as np
 import random
-from mnist_demo import corrupt_image
-from cifar_demo import corrupt_channels
+from run_mnist import corrupt_image
+from run_cifar import corrupt_channels
 
 from complete import complete_matrix
 
@@ -92,5 +94,5 @@ if __name__ == '__main__':
         plt.imshow(rgb)
 
 
-    plt.savefig('fig_cmp.png')
+    plt.savefig('figs/fig_cmp.png')
     plt.show()

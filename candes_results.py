@@ -13,13 +13,13 @@ if __name__ == '__main__':
     import matplotlib.pyplot as plt
     import os, sys, time, datetime
 
-    pix_res = 32,32
-    trials = 10
+    pix_res = 16,16
+    trials = 5
 
     img = np.zeros(pix_res)
     start = time.time()
     if not os.path.isfile('backup.npy'):
-        for n in [30]:
+        for n in [16]:
             for x, m_over_Dn in enumerate(np.linspace(0.05, 1, num=pix_res[0])):
                 for y, dr_over_m in enumerate(np.linspace(0.11, 1, num=pix_res[1])):
                     for trial in range(trials):
@@ -56,5 +56,5 @@ if __name__ == '__main__':
     plt.title('Reproduction of Fig. 2 from Candes et. al.', fontsize=20)
     plt.xlabel(r'$m/D_n$', fontsize=18)
     plt.ylabel(r'$d_r/m$', fontsize=18)
-    plt.savefig('figs/repro_candes.png')
+    plt.savefig('figs/repro_fig2.png')
     plt.show()
